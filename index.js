@@ -11,25 +11,25 @@ const jwt = require('jsonwebtoken')
 const app = express();
 app.use(bodyParser.json());
 
-mongoose.connect('mongodb://127.0.0.1:27017/ecommerce', {
+mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
 
-// Importing models
+
 const User = require('./models/User');
 const Product = require('./models/Product');
 const Cart = require('./models/Cart');
 const Order = require('./models/Order');
 
-// Configuration for Cashfree
+
 const cashfreeAuth = {
     appId: process.env.APP_ID,
     secretKey: process.env.SECRET_KEY,
-    isProd: false // Set to true in production
+    isProd: false 
 };
 
-// Adding a user with password hashing
+
 app.post('/user', async (req, res) => {
     try {
         const { name, email, password,phone } = req.body;
@@ -49,7 +49,7 @@ app.post('/user', async (req, res) => {
     }
 });
 
-// User login
+
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -70,7 +70,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Get all users
+
 app.get('/users', async (req, res) => {
     try {
         const users = await User.find();
@@ -90,7 +90,7 @@ app.delete('/users', async (req, res) => {
 });
 
 
-// Add an order
+
 app.post('/order', async (req, res) => {
     try {
         const { userId, cartId, status, totalAmount, paymentReference } = req.body;
@@ -111,7 +111,7 @@ app.post('/order', async (req, res) => {
     }
 });
 
-// Get all orders
+
 app.get('/orders', async (req, res) => {
     try {
         const orders = await Order.find();
@@ -121,7 +121,7 @@ app.get('/orders', async (req, res) => {
     }
 });
 
-// Adding items to the cart
+
 app.post('/cart', async (req, res) => {
     try {
         const { userId, productId, quantity,amount } = req.body;
@@ -146,7 +146,7 @@ app.post('/cart', async (req, res) => {
     }
 });
 
-// Get all cart items
+
 app.get('/carts', async (req, res) => {
     try {
         const carts = await Cart.find().populate('products.productId');
@@ -156,7 +156,7 @@ app.get('/carts', async (req, res) => {
     }
 });
 
-// Get a specific user's cart
+
 app.get('/cart/:userId', async (req, res) => {
     try {
         const cart = await Cart.findOne({ userId: req.params.userId }).populate('products.productId');
@@ -170,7 +170,7 @@ app.get('/cart/:userId', async (req, res) => {
     }
 });
 
-// Remove an item from the cart
+
 app.delete('/cart/:userId/:productId', async (req, res) => {
     try {
         const { userId, productId } = req.params;
@@ -196,7 +196,7 @@ app.delete('/carts', async (req, res) => {
 });
 
 
-// Initiate a payment
+
 app.post('/initiate-payment', async (req, res) => {
     try {
         const { userId, orderId } = req.body;
@@ -283,16 +283,16 @@ app.post('/initiate-payment', async (req, res) => {
 });
 
 
-// Handle payment webhooks
+
 app.post('/payment-webhook', async (req, res) => {
     try {
         const { orderId, txStatus, txMsg } = req.body;
 
         if (txStatus === 'SUCCESS') {
-            // Payment successful
+        
             await Order.updateOne({ id: orderId }, { status: 'PAID' });
         } else {
-            // Payment failed
+           
             await Order.updateOne({ id: orderId }, { status: 'FAILED' });
         }
 
@@ -302,7 +302,7 @@ app.post('/payment-webhook', async (req, res) => {
     }
 });
 
-// Check payment status
+
 app.get('/payment-status', async (req, res) => {
     const { orderId } = req.body;
 
@@ -314,7 +314,7 @@ app.get('/payment-status', async (req, res) => {
     res.send({ status: order.status });
 });
 
-// Starting the server
+
 const port = process.env.APP_PORT || 3000;
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
