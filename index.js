@@ -29,6 +29,9 @@ const cashfreeAuth = {
     isProd: false 
 };
 
+app.get('/',(req,res)=>{
+    res.send("server successfully running");
+})
 
 app.post('/user', async (req, res) => {
     try {
